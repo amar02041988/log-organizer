@@ -1,0 +1,59 @@
+service: pm-log-organizer
+
+plugins:
+  - serverless-prune-plugin
+
+custom:
+  defaultRegion: eu-west-1
+  prefix: ${self:provider.stage}-pm
+
+  awsAccountId: 259398755136
+  retentionPeriod: 1
+  datadogForwarderFunctionName: DatadogIntegration-ForwarderStack-1922WV-Forwarder-7L5duIBwcg6q
+
+  pmBucketName: ${self:custom.prefix}-data
+  pmAuditLogsQueueName: ${self:custom.prefix}-audit-logs
+  
+  batchSize: 10
+  maximumBatchingWindow: 5
+
+  prune:
+    automatic: true
+    number: 2
+
+provider:
+  name: aws
+  runtime: nodejs22.x
+  architecture: arm64
+  stage: ${opt:stage}
+  region: ${opt:region, self:custom.defaultRegion}
+  stackName: ${self:provider.stage}-sls-stack-${self:service}
+
+  deploymentBucket:
+    name: ${self:custom.prefix}-platform-deployment-bucket
+  environment:
+    ${file(./configs/providers/${self:provider.name}/${self:provider.stage}/env.yml)}
+  iamRoleStatements:
+  - Effect: Allow
+    Action:
+      - s3:PutObject
+      - s3:GetObject
+      - s3:ListBucket
+    Resource:
+      - arn:aws:s3:::${self:custom.pmBucketName}/*
+      - arn:aws:s3:::${self:custom.pmBucketName}
+ 
+  - Effect: Allow
+    Action:
+      - sqs:ReceiveMessage
+      - sqs:DeleteMessage
+      - sqs:GetQueueAttributes
+      - sqs:GetQueueUrl
+    Resource:
+      - "arn:aws:sqs:${self:provider.region}:${self:custom.awsAccountId}:${self:custom.pmAuditLogsQueueName}"
+
+functions:
+  ${file(./configs/functions/functions.yml)}
+
+resources:
+  - ${file(./configs/resources/log-integration.yml)}

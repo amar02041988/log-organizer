@@ -1,0 +1,22 @@
+- process:
+    name: ${self:provider.stage}-${self:service}
+    description: Log organizer
+    handler: handler.handle
+    timeout: 29
+    package:
+      include:
+        - handler.js
+        - node_modules/**
+    events:
+      - sqs:
+          arn:
+            Fn::Join:
+              - ':'
+              - - arn
+                - aws
+                - sqs
+                - Ref: AWS::Region
+                - Ref: AWS::AccountId
+                - ${self:custom.pmAuditLogsQueueName}
+          batchSize: ${self:custom.batchSize}
+          maximumBatchingWindow: ${self:custom.maximumBatchingWindow}

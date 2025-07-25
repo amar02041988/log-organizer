@@ -1,0 +1,15 @@
+Resources:
+  ProcessLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/${self:provider.stage}-${self:service}
+      RetentionInDays: ${self:custom.retentionPeriod}
+      
+  DatadogSubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      DestinationArn: arn:aws:lambda:${self:custom.defaultRegion}:${self:custom.awsAccountId}:function:${self:custom.datadogForwarderFunctionName}
+      FilterPattern: ''
+      LogGroupName:
+        Ref: ProcessLogGroup
+  

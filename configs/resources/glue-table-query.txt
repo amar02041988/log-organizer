@@ -1,0 +1,47 @@
+Note: Please update the ${stage} with actual env value such as dev, sit, uat, prod; 
+in below queries before running them.
+
+-----------------------
+Create table query
+-----------------------
+CREATE EXTERNAL TABLE IF NOT EXISTS ${stage}_pm.audit_logs (
+  apiKeyId           string,
+  dateTime           string,
+  correlationId      string,
+  filename           string,
+  stepCategory       string,
+  stepStatus         string,
+  entity             string,
+  workflowInfo       string,
+  recordAuditFlag    boolean
+)
+PARTITIONED BY (
+  message_type string,
+  project_code string,
+  partner string,
+  customer string,
+  client_id string,
+  hashed_api_key string,
+  region string,
+  country string,
+  component string,
+  year int,
+  month int,
+  day int,
+  hour int
+)
+ROW FORMAT SERDE 'org.openx.data.jsonserde.JsonSerDe'
+LOCATION 's3://${stage}-pm-data/log_records/'
+TBLPROPERTIES (
+  'ignore.malformed.json' = 'true'
+);
+
+-----------------------
+Test table
+-----------------------
+
+-- Very important command to run first, to get the partitions from new records registered. 
+MSCK REPAIR TABLE ${stage}_pm.audit_logs
+
+SELECT * FROM ${stage}_pm.audit_logs
+WHERE message_type = 'audit_record'
