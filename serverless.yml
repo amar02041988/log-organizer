@@ -7,9 +7,8 @@ custom:
   defaultRegion: eu-west-1
   prefix: ${self:provider.stage}-pm
 
-  awsAccountId: 259398755136
+  awsAccountId: <ACCOUNT_NAME>
   retentionPeriod: 1
-  datadogForwarderFunctionName: DatadogIntegration-ForwarderStack-1922WV-Forwarder-7L5duIBwcg6q
 
   pmBucketName: ${self:custom.prefix}-data
   pmAuditLogsQueueName: ${self:custom.prefix}-audit-logs
